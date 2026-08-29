@@ -41,7 +41,7 @@ public class AuthFilter extends OncePerRequestFilter {
         String authToken = request.getHeader(HttpHeaders.AUTHORIZATION);// This needs to be collected and then passed forward otherwise it dies here.
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, authToken);
+        headers.setBearerAuth(authToken);
 
         HttpEntity<Void> requestHeaderEntity = new HttpEntity<>(headers);
 
