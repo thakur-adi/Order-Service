@@ -43,6 +43,7 @@ public class OrderService implements IOrderService{
         //Create new Order
         Order newOrder = new Order();
         newOrder.setUserId(user.getUserId());
+        newOrder.setDeliveryAddress(deliveryAddress);
         newOrder.setProducts(createProducts(products));
         newOrder.setPaymentMethod(paymentMethod);
         newOrder.setTotalAmount(totalAmount);
@@ -65,11 +66,19 @@ public class OrderService implements IOrderService{
         HttpEntity<InitiatePaymentDTO> httpRequestEntity = new HttpEntity<>(paymentDTO,httpHeaders);
 
         //Call the payment microservice
-        ResponseEntity<String> paymentResponseLink = restTemplate.postForEntity("http://Payment-Service/pay",httpRequestEntity,String.class);
+        ResponseEntity<String> paymentResponseLink = restTemplate.postForEntity("http://Payment-Service/payment/pay",httpRequestEntity,String.class);
+        /*
+        By default, whenever RestTemplate receives any response status code that is NOT a 2xx (Success),
+         it immediately throws a RestClientResponseException (like HttpClientErrorException$NotFound).
+        It intercepts the non-2xx status and crashes right at your calling line, completely skipping your normal variable assignment or response parsing logic.
 
-        if(!paymentResponseLink.getStatusCode().is2xxSuccessful()){
+        That's why this will never get called. Better to handle it in Global handler or update the RestTemplate Bean.
+
+        if(!(paymentResponseLink.getStatusCode().is2xxSuccessful())){
             throw new CustomPaymentGenerationException("Couldn't generate payment link! Please try again later!");
         }
+
+         */
         newOrder.setOrderStatus(OrderStatus.PAYMENT_IN_PROGRESS);
         orderRepo.save(newOrder);
         return paymentResponseLink.getBody();
@@ -129,6 +138,7 @@ public class OrderService implements IOrderService{
                 newProduct.setProductName(p.getProductName());
                 newProduct.setPrice(p.getPrice());
                 newProduct.setQuantity(p.getQuantity());
+                newProduct.setProductImageUrl(p.getProductImageUrl());
                 productRepo.save(newProduct);
             }
             else{

@@ -7,6 +7,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 /*
 This is an Advisor Class. As the name suggests this handles all the exceptions defined in the project at  one place.
@@ -49,6 +50,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException e){
         return new ResponseEntity<>("Missing Message Body. Please provide a Http Body and try again!!",
                 HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(HttpServerErrorException.class)
+    public ResponseEntity<String> handleHttpServerErrorException(HttpServerErrorException e){
+        return new ResponseEntity<>("Couldn't generate payment link! Please try again later!",e.getStatusCode());
     }
 
 
