@@ -61,6 +61,9 @@ public class AuthFilter extends OncePerRequestFilter {
 
             //Only go ahead if authorized otherwise it should hit entry point and stop execution
             filterChain.doFilter(request, response);
+        } else if (request.getServletPath().equals("/staus")) {
+            //Allow the request to pass through in case of payment details update.
+            filterChain.doFilter(request, response);
         } else {
             customAuthEntryPoint.commence(request, response, new CustomAuthorizationException("Authentication failed!! Possible Theft!"));
         }

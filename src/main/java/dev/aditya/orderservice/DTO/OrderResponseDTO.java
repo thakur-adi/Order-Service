@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 public class OrderResponseDTO {
     private String orderCreationDate;
-    private String orderLastUpdateDate;
+    private String orderLastUpdateDate; //for "delivered on 18th june" type scenarios
     private String orderStatus;
     private List<ProductResponseDTO> products;
     private Double totalAmount;

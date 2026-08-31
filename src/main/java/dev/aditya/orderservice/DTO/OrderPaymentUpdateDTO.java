@@ -5,10 +5,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PaymentResponseDTO {
+public class OrderPaymentUpdateDTO {
     private Long orderId;
     private String paymentStatus;
-    private String paymentId;
+    private Long paymentId;
     private String paymentMethod;
     private Long totalAmount;
 }

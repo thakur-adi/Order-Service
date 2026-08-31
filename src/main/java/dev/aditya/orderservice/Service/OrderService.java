@@ -2,6 +2,7 @@ package dev.aditya.orderservice.Service;
 
 import dev.aditya.orderservice.DTO.InitiatePaymentDTO;
 import dev.aditya.orderservice.Exceptions.CustomPaymentGenerationException;
+import dev.aditya.orderservice.Exceptions.OrderNotFoundException;
 import dev.aditya.orderservice.Model.Order;
 import dev.aditya.orderservice.Model.OrderStatus;
 import dev.aditya.orderservice.Model.Product;
@@ -10,6 +11,9 @@ import dev.aditya.orderservice.Repository.OrderRepo;
 import dev.aditya.orderservice.Repository.ProductRepo;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -61,35 +65,56 @@ public class OrderService implements IOrderService{
         HttpEntity<InitiatePaymentDTO> httpRequestEntity = new HttpEntity<>(paymentDTO,httpHeaders);
 
         //Call the payment microservice
-        ResponseEntity<String> paymentResponse = restTemplate.postForEntity("http://Payment-Service/pay",httpRequestEntity,String.class);
+        ResponseEntity<String> paymentResponseLink = restTemplate.postForEntity("http://Payment-Service/pay",httpRequestEntity,String.class);
 
-        if(!paymentResponse.getStatusCode().is2xxSuccessful()){
+        if(!paymentResponseLink.getStatusCode().is2xxSuccessful()){
             throw new CustomPaymentGenerationException("Couldn't generate payment link! Please try again later!");
         }
         newOrder.setOrderStatus(OrderStatus.PAYMENT_IN_PROGRESS);
         orderRepo.save(newOrder);
-        return paymentResponse.getBody();
+        return paymentResponseLink.getBody();
     }
 
 
     @Override
-    public Page<Order> getOrderHistory() {
-        return null;
+    public Page<Order> getOrderHistory(Long userid,int pageNumber,int pageSize) {
+        Sort sort = Sort.by("createdAt").descending();
+        Pageable pageable = PageRequest.of(pageNumber,pageSize,sort);
+        Page<Order> orderPage =  orderRepo.findAllByUserId(userid,pageable);
+        if(orderPage.isEmpty()){
+            throw new OrderNotFoundException("You haven't ordered anything yet!");
+        }
+        else return orderPage;
     }
 
     @Override
-    public Order getOrderStatus() {
-        return null;
+    public Order getOrderDetails(Long userId,Long orderId) {
+        Optional<Order> orderOptional =  orderRepo.findOrderByIdAndUserId(orderId,userId);
+        if(orderOptional.isEmpty()){
+            throw new OrderNotFoundException("Order doesn't exist! Please provide appropriate Order Id and User Id!!");
+        }
+        return orderOptional.get();
     }
 
     @Override
-    public Order updateOrderStatus() {
-        return null;
+    public void updateOrderPaymentDetails(Long orderId, String orderStatus, Long paymentId, String paymentMethod) {
+        Optional<Order> orderOptional = orderRepo.findById(orderId);
+        if(orderOptional.isEmpty()){
+            throw new OrderNotFoundException("Order doesn't exist! Please provide appropriate Order Id and User Id!!");
+        }
+        else{
+            Order order = orderOptional.get();
+            order.setOrderStatus(convertToOrderStatus(orderStatus));
+            order.setPaymentId(paymentId);
+            order.setPaymentMethod(paymentMethod);
+            orderRepo.save(order);
+        }
     }
+
+
 
 
     //Helper Methods
-
 
     private List<Product> createProducts(List<Product> products) {
         List<Product> updatedProducts = new ArrayList<>();
@@ -112,5 +137,18 @@ public class OrderService implements IOrderService{
         }
         return updatedProducts;
 
+    }
+
+    private OrderStatus convertToOrderStatus(String orderStatus) {
+        switch(orderStatus.toUpperCase()){
+            case "PROCESSING":
+                return OrderStatus.PAYMENT_IN_PROGRESS;
+
+            case"SUCCESS":
+                return  OrderStatus.IN_TRANSIT;
+
+            default:
+                return OrderStatus.PAYMENT_FAILED;
+        }
     }
 }

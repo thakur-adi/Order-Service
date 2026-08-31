@@ -57,4 +57,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleCustomPaymentGenerationException(CustomPaymentGenerationException e){
         return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<String> handleOrderNotFoundException(OrderNotFoundException e){
+        return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
+    }
 }

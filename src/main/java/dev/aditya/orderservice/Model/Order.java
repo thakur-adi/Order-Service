@@ -1,11 +1,14 @@
 package dev.aditya.orderservice.Model;
 
+import dev.aditya.orderservice.DTO.OrderResponseDTO;
+import dev.aditya.orderservice.DTO.ProductResponseDTO;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -19,6 +22,23 @@ public class Order extends Base{
     private List<Product> products;
     private Double totalAmount;
     private String deliveryAddress;
+    private Long paymentId;
     private String paymentMethod;
     private OrderStatus orderStatus;
+
+     public OrderResponseDTO convertToOrderDto(){
+         OrderResponseDTO orderResponseDTO = new OrderResponseDTO();
+         List<ProductResponseDTO> productResponseDTOS = new ArrayList<>();
+         for(Product p:products){
+             productResponseDTOS.add(p.convertToDto());
+         }
+         orderResponseDTO.setProducts(productResponseDTOS);
+         orderResponseDTO.setOrderStatus(orderStatus.name());
+         orderResponseDTO.setOrderCreationDate(getCreatedAt().toString());
+         orderResponseDTO.setTotalAmount(totalAmount);
+         orderResponseDTO.setPaymentMethod(paymentMethod);
+         orderResponseDTO.setDeliveryAddress(deliveryAddress);
+         orderResponseDTO.setOrderLastUpdateDate(getLastUpdatedAt().toString());
+         return orderResponseDTO;
+     }
 }
