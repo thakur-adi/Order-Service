@@ -41,7 +41,8 @@ public class AuthFilter extends OncePerRequestFilter {
         String authToken = request.getHeader(HttpHeaders.AUTHORIZATION);// This needs to be collected and then passed forward otherwise it dies here.
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(authToken);
+        headers.set(HttpHeaders.AUTHORIZATION, authToken);
+        //httpHeaders.setBearerAuth(authToken); //This is not working gives 401 error saying "[no body]". Only fix is use the above way.
 
         HttpEntity<Void> requestHeaderEntity = new HttpEntity<>(headers);
 
