@@ -97,7 +97,7 @@ public class OrderService implements IOrderService{
     }
 
     @Override
-    public void updateOrderPaymentDetails(Long orderId, String orderStatus, Long paymentId, String paymentMethod) {
+    public void updateOrderPaymentDetails(Long orderId, String orderStatus, Long paymentId, String paymentMethod, String paymentGateway) {
         Optional<Order> orderOptional = orderRepo.findById(orderId);
         if(orderOptional.isEmpty()){
             throw new OrderNotFoundException("Order doesn't exist! Please provide appropriate Order Id and User Id!!");
@@ -107,6 +107,7 @@ public class OrderService implements IOrderService{
             order.setOrderStatus(convertToOrderStatus(orderStatus));
             order.setPaymentId(paymentId);
             order.setPaymentMethod(paymentMethod);
+            order.setPaymentGateway(paymentGateway);
             orderRepo.save(order);
         }
     }

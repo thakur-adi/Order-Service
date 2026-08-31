@@ -9,6 +9,7 @@ public class OrderPaymentUpdateDTO {
     private Long orderId;
     private String paymentStatus;
     private Long paymentId;
-    private String paymentMethod;
+    private String paymentMethod; // Card,Net_Banking,UPI,COD
     private Long totalAmount;
+    private String paymentGateway;
 }

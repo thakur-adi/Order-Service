@@ -51,7 +51,11 @@ public class OrderController {
     // Will always be initiated by Payment Service, can later add in a value in header to check whether the request is coming from Payment Service or not.
     @PutMapping("/payment-status")
     public ResponseEntity<String> updateOrderPaymentDetails(@RequestBody OrderPaymentUpdateDTO orderPaymentUpdateDTO){
-        orderService.updateOrderPaymentDetails(orderPaymentUpdateDTO.getOrderId(),orderPaymentUpdateDTO.getPaymentStatus(),orderPaymentUpdateDTO.getPaymentId(),orderPaymentUpdateDTO.getPaymentMethod());
+        orderService.updateOrderPaymentDetails(orderPaymentUpdateDTO.getOrderId()
+                                              ,orderPaymentUpdateDTO.getPaymentStatus()
+                                              ,orderPaymentUpdateDTO.getPaymentId()
+                                              ,orderPaymentUpdateDTO.getPaymentMethod()
+                                              , orderPaymentUpdateDTO.getPaymentGateway());
         return new ResponseEntity<>("Payment Status has been updated!",HttpStatus.OK);
     }
 

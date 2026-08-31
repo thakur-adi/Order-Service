@@ -16,5 +16,5 @@ public interface IOrderService {
 
     Order getOrderDetails(Long userId,Long orderId);
 
-    void updateOrderPaymentDetails(Long orderId, String orderStatus, Long paymentId, String paymentMethod);
+    void updateOrderPaymentDetails(Long orderId, String orderStatus, Long paymentId, String paymentMethod,String paymentGateway);
 }

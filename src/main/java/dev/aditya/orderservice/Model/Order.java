@@ -24,6 +24,7 @@ public class Order extends Base{
     private String deliveryAddress;
     private Long paymentId;
     private String paymentMethod;
+    private String paymentGateway;
     private OrderStatus orderStatus;
 
      public OrderResponseDTO convertToOrderDto(){
@@ -37,6 +38,7 @@ public class Order extends Base{
          orderResponseDTO.setOrderCreationDate(getCreatedAt().toString());
          orderResponseDTO.setTotalAmount(totalAmount);
          orderResponseDTO.setPaymentMethod(paymentMethod);
+         orderResponseDTO.setPaymentGateway(paymentGateway);
          orderResponseDTO.setDeliveryAddress(deliveryAddress);
          orderResponseDTO.setOrderLastUpdateDate(getLastUpdatedAt().toString());
          return orderResponseDTO;
