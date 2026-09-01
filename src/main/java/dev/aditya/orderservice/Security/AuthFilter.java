@@ -17,6 +17,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -40,32 +41,40 @@ public class AuthFilter extends OncePerRequestFilter {
 
         String authToken = request.getHeader(HttpHeaders.AUTHORIZATION);// This needs to be collected and then passed forward otherwise it dies here.
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, authToken);
-        //httpHeaders.setBearerAuth(authToken); //This is not working gives 401 error saying "[no body]". Only fix is use the above way.
+        //Bypass this whole filter when the request hits the below end-point
+        if((request.getServletPath().equals("/payment-status"))) {
+            // This doesn't force the exit of current method.
+            // It simply means "hand over control to the next filter in the chain (or the controller),
+            // wait for that entire process to finish, and then come back here to execute whatever is left".
+            filterChain.doFilter(request,response); // This moves the request forward down the chain
+            return; //This forces the compiler to exit the method, otherwise it'll keep on executing the code.
+        }
 
-        HttpEntity<Void> requestHeaderEntity = new HttpEntity<>(headers);
+        try{
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.AUTHORIZATION, authToken);
+            //httpHeaders.setBearerAuth(authToken); //This is not working gives 401 error saying "[no body]" ->Reason: This adds another Bearer keyword so out token becomes Bearer Bearer ..... Only fix is use the above way.
 
-        ResponseEntity<String> authenticatedResponse = restTemplate.postForEntity(verificationURL, requestHeaderEntity, String.class);
+            HttpEntity<Void> requestHeaderEntity = new HttpEntity<>(headers);
 
-        if(authenticatedResponse.getStatusCode().is2xxSuccessful()) {
+            ResponseEntity<String> authenticatedResponse = restTemplate.postForEntity(verificationURL, requestHeaderEntity, String.class);
 
-            //This here tells spring that the request is authenticated, So every filter needs this to pass the request which need to be authenticated.
-            UsernamePasswordAuthenticationToken authenticationToken =
-                    UsernamePasswordAuthenticationToken.authenticated(createUser(authenticatedResponse.getHeaders()),
-                            null,
-                            AuthorityUtils.createAuthorityList(authenticatedResponse.getHeaders().getFirst("X-USER-ROLES")));
+            if(authenticatedResponse.getStatusCode().is2xxSuccessful()) {
 
-            SecurityContext newContext = SecurityContextHolder.createEmptyContext();
-            newContext.setAuthentication(authenticationToken);
-            SecurityContextHolder.setContext(newContext);
+                //This here tells spring that the request is authenticated, So every filter needs this to pass the request which need to be authenticated.
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        UsernamePasswordAuthenticationToken.authenticated(createUser(authenticatedResponse.getHeaders()),
+                                null,
+                                AuthorityUtils.createAuthorityList(authenticatedResponse.getHeaders().getFirst("X-USER-ROLES")));
 
-            //Only go ahead if authorized otherwise it should hit entry point and stop execution
+                SecurityContext newContext = SecurityContextHolder.createEmptyContext();
+                newContext.setAuthentication(authenticationToken);
+                SecurityContextHolder.setContext(newContext);
+
+            }
             filterChain.doFilter(request, response);
-        } else if (request.getServletPath().equals("/staus")) {
-            //Allow the request to pass through in case of payment details update.
-            filterChain.doFilter(request, response);
-        } else {
+        }
+        catch (HttpClientErrorException e){
             customAuthEntryPoint.commence(request, response, new CustomAuthorizationException("Authentication failed!! Possible Theft!"));
         }
     }

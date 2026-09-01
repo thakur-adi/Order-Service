@@ -16,7 +16,7 @@ public class SpringSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity){
         httpSecurity.authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.PUT,"/order/status").permitAll()
+                        .requestMatchers(HttpMethod.PUT,"/payment-status").permitAll() // Only put in servlet path no need for context path.
                         .anyRequest().authenticated())
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                 .csrf(csrf-> csrf.disable());

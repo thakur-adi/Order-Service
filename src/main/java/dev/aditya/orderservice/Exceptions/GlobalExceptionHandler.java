@@ -51,6 +51,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("Missing Message Body. Please provide a Http Body and try again!!",
                 HttpStatus.BAD_REQUEST);
     }
+    //For failed RestTemplate call i.e. this gets called when restTemplate call fails
     @ExceptionHandler(HttpServerErrorException.class)
     public ResponseEntity<String> handleHttpServerErrorException(HttpServerErrorException e){
         return new ResponseEntity<>("Couldn't generate payment link! Please try again later!",e.getStatusCode());

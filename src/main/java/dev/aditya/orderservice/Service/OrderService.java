@@ -1,7 +1,6 @@
 package dev.aditya.orderservice.Service;
 
 import dev.aditya.orderservice.DTO.InitiatePaymentDTO;
-import dev.aditya.orderservice.Exceptions.CustomPaymentGenerationException;
 import dev.aditya.orderservice.Exceptions.OrderNotFoundException;
 import dev.aditya.orderservice.Model.Order;
 import dev.aditya.orderservice.Model.OrderStatus;
@@ -88,12 +87,12 @@ public class OrderService implements IOrderService{
     @Override
     public Page<Order> getOrderHistory(Long userid,int pageNumber,int pageSize) {
         Sort sort = Sort.by("createdAt").descending();
-        Pageable pageable = PageRequest.of(pageNumber,pageSize,sort);
+        Pageable pageable = PageRequest.of(pageNumber-1,pageSize,sort);//Since page number starts from 0 actually not 1 so when we pass page 1 we want page 0
         Page<Order> orderPage =  orderRepo.findAllByUserId(userid,pageable);
         if(orderPage.isEmpty()){
             throw new OrderNotFoundException("You haven't ordered anything yet!");
         }
-        else return orderPage;
+        return orderPage;
     }
 
     @Override
